@@ -1,6 +1,6 @@
 import React from "react";
 
-function CallActivationDecisionTool() {
+export default function CallActivationDecisionTool() {
   const [timeBucket, setTimeBucket] = React.useState("");
   const [daysUntilShift, setDaysUntilShift] = React.useState("");
   const [shiftType, setShiftType] = React.useState("");
@@ -31,32 +31,32 @@ function CallActivationDecisionTool() {
       if (daysNum >= 2) {
         return {
           title: "UC shift, 2+ days out",
-          body: "Call out as early as possible. Urgent Care needs physician coverage at each site daily, and earlier notice makes it easier to shut off unbooked appointments and adjust staffing.",
+          body: "Call out as early as possible and notify the Urgent Care manager on call. Earlier notice allows clinics to shut off unbooked appointments.",
           who: [
-            "Call or text the Urgent Care managers and leadership team",
-            "Check the North Valley Urgent Care TEAMS manager schedule if needed",
+            "Find the on-call manager in ClinConnect → Roseville Urgent Care",
+            "Call or text the manager on their mobile number",
+            "Text Stephanie Eden: 530-638-6690",
           ],
           notes: [
+            "The schedule shows 10a–8p but reflects which manager is working that day.",
+            "If only one manager is listed, they are covering both sites.",
             "ED back-up Call is not used to cover UC shifts.",
-            "ROS normally has 2 physicians scheduled daily and FOL normally has 1 when the schedule is released.",
-            "Additional volunteer shifts may be added based on PA schedule, support staffing, and day of week.",
           ],
         };
       }
       return {
         title: "UC shift, today or tomorrow",
-        body: "Call out as soon as possible and call or text the Urgent Care managers and leadership team directly. Do not use the regular ED Call process.",
+        body: "Call out as soon as possible and notify the Urgent Care manager on call directly. Do not use the ED Call process.",
         who: [
-          "Call or text Stephanie Eden: 530-638-6690",
-          "Call or text James Thum: 916-790-4565",
-          "Call or text Mary Gannon: 279-234-3212",
-          "Call or text Lynh Tran: 279-790-9471",
-          "Call or text Lisa Raumann: 279-900-7295",
+          "Find the on-call manager in ClinConnect → Roseville Urgent Care",
+          "Call or text the manager (mobile is best contact)",
+          "If outside hours, send a text",
+          "Text Stephanie Eden: 530-638-6690",
         ],
         notes: [
+          "Earlier notice makes it easier to shut off appointments rather than cancel booked patients.",
+          "If only one manager is listed, they are covering both sites.",
           "ED back-up Call is not used to cover UC shifts.",
-          "You can use the North Valley Urgent Care TEAMS manager schedule to see who is working.",
-          "If the FOL physician calls out sick and is the only physician working, the ROS physician will be moved to FOL. This is the second physician listed on Intrigma.",
         ],
       };
     }
@@ -65,9 +65,7 @@ function CallActivationDecisionTool() {
       return {
         title: "2+ days out",
         body: "Do not activate Call. Email the scheduler to orphan the shift.",
-        who: [
-          "Email scheduler (EDMD-NVLY-Scheduler@kp.org)",
-        ],
+        who: [<a href="mailto:EDMD-NVLY-Scheduler@kp.org" className="underline">Email scheduler (EDMD-NVLY-Scheduler@kp.org)</a>],
         notes: [
           "For multi-day illness, only tomorrow uses Call logic. Later shifts are handled by the scheduler.",
         ],
@@ -157,67 +155,44 @@ function CallActivationDecisionTool() {
 
   const result = getRecommendation();
 
-  const renderActionItem = (item) => {
-    if (item === "Email scheduler (EDMD-NVLY-Scheduler@kp.org)") {
-      return (
-        <a href="mailto:EDMD-NVLY-Scheduler@kp.org">
-          Email scheduler (EDMD-NVLY-Scheduler@kp.org)
-        </a>
-      );
-    }
-    return item;
-  };
-
   return (
-    <div style={{ padding: 16, fontFamily: "Arial, sans-serif", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-        <h2 style={{ marginTop: 0, marginBottom: 8 }}>ED Call Activate Guide Prototype</h2>
-        <p style={{ marginTop: 0, color: "#475569" }}>
-          Simple prototype for sick call and orphan decision support using TAS and Intrigma.
-        </p>
+    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 md:p-6">
+      <div className="mx-auto max-w-5xl space-y-4 sm:space-y-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">ED Call Activate Guide Prototype</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Simple prototype for sick call / orphan decision support using TAS and Intrigma.
+          </p>
+        </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
-          <div style={{ backgroundColor: "white", border: "1px solid #cbd5e1", borderRadius: 16, padding: 16 }}>
-            <h3 style={{ marginTop: 0 }}>Current situation</h3>
+        <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
+          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 space-y-4 sm:p-5 sm:space-y-5">
+            <h2 className="text-lg font-medium sm:text-xl">Current situation</h2>
 
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>Is this an ED shift or UC shift?</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                <button
-                  onClick={() => setIsUC("no")}
-                  style={{
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    border: "1px solid #94a3b8",
-                    backgroundColor: isUC === "no" ? "#0f172a" : "white",
-                    color: isUC === "no" ? "white" : "#0f172a",
-                    cursor: "pointer",
-                  }}
-                >
-                  ED shift
-                </button>
-                <button
-                  onClick={() => setIsUC("yes")}
-                  style={{
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    border: "1px solid #94a3b8",
-                    backgroundColor: isUC === "yes" ? "#0f172a" : "white",
-                    color: isUC === "yes" ? "white" : "#0f172a",
-                    cursor: "pointer",
-                  }}
-                >
-                  UC shift
-                </button>
+            <div>
+              <label className="mb-3 block text-sm font-medium">Is this an ED shift or UC shift?</label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {[
+                  ["no", "ED shift"],
+                  ["yes", "UC shift"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => setIsUC(value)}
+                    className={`min-h-[72px] rounded-2xl border p-4 text-left transition ${isUC === value ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-50"}`}
+                  >
+                    <div className="text-base font-medium sm:text-lg">{label}</div>
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>When is the affected shift?</div>
+            <div>
+              <label className="mb-2 block text-sm font-medium">When is the affected shift?</label>
               <select
+                className="w-full rounded-xl border p-3 text-base"
                 value={daysUntilShift}
                 onChange={(e) => setDaysUntilShift(e.target.value)}
-                style={{ padding: 10, borderRadius: 10, border: "1px solid #94a3b8", width: "100%", maxWidth: 320 }}
               >
                 <option value="">Select...</option>
                 <option value="0">Today</option>
@@ -228,79 +203,51 @@ function CallActivationDecisionTool() {
 
             {daysUntilShift !== "" && Number(daysUntilShift) < 2 && isUC === "no" && (
               <>
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 8 }}>What time is it right now?</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    <button
-                      onClick={() => setTimeBucket("before4")}
-                      style={{
-                        padding: "10px 14px",
-                        borderRadius: 10,
-                        border: "1px solid #94a3b8",
-                        backgroundColor: timeBucket === "before4" ? "#0f172a" : "white",
-                        color: timeBucket === "before4" ? "white" : "#0f172a",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Before 4pm
-                    </button>
-                    <button
-                      onClick={() => setTimeBucket("after4")}
-                      style={{
-                        padding: "10px 14px",
-                        borderRadius: 10,
-                        border: "1px solid #94a3b8",
-                        backgroundColor: timeBucket === "after4" ? "#0f172a" : "white",
-                        color: timeBucket === "after4" ? "white" : "#0f172a",
-                        cursor: "pointer",
-                      }}
-                    >
-                      After 4pm
-                    </button>
+                <div>
+                  <label className="mb-2 block text-sm font-medium">What time is it right now?</label>
+                  <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+                    {[
+                      ["before4", "Before 4pm"],
+                      ["after4", "After 4pm"],
+                    ].map(([value, label]) => (
+                      <button
+                        key={value}
+                        onClick={() => setTimeBucket(value)}
+                        className={`min-h-[52px] rounded-xl border px-4 py-3 text-sm sm:text-base ${timeBucket === value ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 8 }}>Is the affected shift a day or evening shift?</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    <button
-                      onClick={() => setShiftType("day")}
-                      style={{
-                        padding: "10px 14px",
-                        borderRadius: 10,
-                        border: "1px solid #94a3b8",
-                        backgroundColor: shiftType === "day" ? "#0f172a" : "white",
-                        color: shiftType === "day" ? "white" : "#0f172a",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Day shift
-                    </button>
-                    <button
-                      onClick={() => setShiftType("evening")}
-                      style={{
-                        padding: "10px 14px",
-                        borderRadius: 10,
-                        border: "1px solid #94a3b8",
-                        backgroundColor: shiftType === "evening" ? "#0f172a" : "white",
-                        color: shiftType === "evening" ? "white" : "#0f172a",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Evening shift
-                    </button>
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Is the affected shift a day or evening shift?</label>
+                  <div className="grid grid-cols-1 gap-2 sm:flex">
+                    {[
+                      ["day", "Day shift"],
+                      ["evening", "Evening shift"],
+                    ].map(([value, label]) => (
+                      <button
+                        key={value}
+                        onClick={() => setShiftType(value)}
+                        className={`min-h-[52px] rounded-xl border px-4 py-3 text-sm sm:text-base ${shiftType === value ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                 </div>
               </>
             )}
 
             {timeBucket === "before4" && isUC === "no" && Number(daysUntilShift) < 2 && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>How many orphans already exist for that day?</div>
+              <div>
+                <label className="mb-2 block text-sm font-medium">How many orphans already exist for that day?</label>
                 <select
+                  className="w-full rounded-xl border p-3 text-base"
                   value={orphanCount}
                   onChange={(e) => setOrphanCount(e.target.value)}
-                  style={{ padding: 10, borderRadius: 10, border: "1px solid #94a3b8", width: "100%", maxWidth: 320 }}
                 >
                   <option value="">Select...</option>
                   <option value="0">0</option>
@@ -313,21 +260,14 @@ function CallActivationDecisionTool() {
             )}
 
             {timeBucket === "after4" && isUC === "no" && Number(daysUntilShift) < 2 && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>Which Calls are already activated on TAS?</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              <div>
+                <label className="mb-2 block text-sm font-medium">Which Calls are already activated on TAS?</label>
+                <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
                   {["C1", "C2", "C3", "C4"].map((call) => (
                     <button
                       key={call}
                       onClick={() => toggleCall(call)}
-                      style={{
-                        padding: "10px 14px",
-                        borderRadius: 10,
-                        border: "1px solid #94a3b8",
-                        backgroundColor: activatedCalls.includes(call) ? "#0f172a" : "white",
-                        color: activatedCalls.includes(call) ? "white" : "#0f172a",
-                        cursor: "pointer",
-                      }}
+                      className={`min-h-[52px] rounded-xl border px-4 py-3 text-sm sm:text-base ${activatedCalls.includes(call) ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}
                     >
                       {call}
                     </button>
@@ -337,21 +277,19 @@ function CallActivationDecisionTool() {
             )}
           </div>
 
-          <div style={{ backgroundColor: "white", border: "1px solid #cbd5e1", borderRadius: 16, padding: 16 }}>
-            <h3 style={{ marginTop: 0 }}>Recommendation</h3>
-            <div style={{ backgroundColor: "#f8fafc", borderRadius: 12, padding: 16, marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>{result.title}</div>
-              <div>{result.body}</div>
+          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 space-y-4 sm:p-5">
+            <h2 className="text-lg font-medium sm:text-xl">Recommendation</h2>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-base font-semibold sm:text-lg">{result.title}</div>
+              <p className="mt-2 text-sm leading-6 text-slate-700">{result.body}</p>
             </div>
 
             {result.who.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>Action</div>
-                <ul style={{ margin: 0, paddingLeft: 20 }}>
+              <div>
+                <div className="text-sm font-medium text-slate-900">Action</div>
+                <ul className="mt-2 list-disc pl-5 text-sm leading-6 text-slate-700 space-y-1">
                   {result.who.map((item) => (
-                    <li key={item} style={{ marginBottom: 6 }}>
-                      {renderActionItem(item)}
-                    </li>
+                    <li key={item}>{item}</li>
                   ))}
                 </ul>
               </div>
@@ -359,12 +297,10 @@ function CallActivationDecisionTool() {
 
             {result.notes.length > 0 && (
               <div>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>Notes</div>
-                <ul style={{ margin: 0, paddingLeft: 20 }}>
+                <div className="text-sm font-medium text-slate-900">Notes</div>
+                <ul className="mt-2 list-disc pl-5 text-sm leading-6 text-slate-700 space-y-1">
                   {result.notes.map((item) => (
-                    <li key={item} style={{ marginBottom: 6 }}>
-                      {item}
-                    </li>
+                    <li key={item}>{item}</li>
                   ))}
                 </ul>
               </div>
@@ -372,11 +308,11 @@ function CallActivationDecisionTool() {
           </div>
         </div>
 
-        <div style={{ backgroundColor: "white", border: "1px dashed #94a3b8", borderRadius: 16, padding: 16, marginTop: 16 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Possible future upgrades</div>
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
-            <li style={{ marginBottom: 6 }}>Pull orphan shifts automatically from Intrigma</li>
-            <li style={{ marginBottom: 6 }}>Show a live list of who is on call (physicians and Admin on Call)</li>
+        <div className="rounded-2xl border border-dashed bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm ring-1 ring-slate-200 sm:p-5">
+          <div className="font-medium text-slate-900">Possible future upgrades</div>
+          <ul className="mt-2 list-disc pl-5 space-y-1">
+            <li>Pull orphan shifts automatically from Intrigma</li>
+            <li>Show a live list of who is on call (physicians and Admin on Call)</li>
             <li>Quick links to TAS, Intrigma, and scheduling/call guidelines</li>
           </ul>
         </div>
@@ -384,5 +320,3 @@ function CallActivationDecisionTool() {
     </div>
   );
 }
-
-export default CallActivationDecisionTool;
