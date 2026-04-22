@@ -30,7 +30,7 @@ function renderActionItem(item) {
 
   if (item?.type === "email") {
     return (
-      <a href={`mailto:${item.value}`} className="underline">
+      <a href={`mailto:${item.value}`} className="link">
         {item.label}
       </a>
     );
@@ -74,7 +74,13 @@ function getUcRecommendation(daysNum) {
   };
 }
 
-function getEdRecommendation({ daysNum, timeBucket, shiftType, orphanNum, activatedCalls }) {
+function getEdRecommendation({
+  daysNum,
+  timeBucket,
+  shiftType,
+  orphanNum,
+  activatedCalls,
+}) {
   if (daysNum >= 2) {
     return {
       title: "2+ days out",
@@ -122,8 +128,12 @@ function getEdRecommendation({ daysNum, timeBucket, shiftType, orphanNum, activa
     };
   }
 
-  const dayCallsUsed = activatedCalls.filter((c) => c === "C1" || c === "C2").length;
-  const eveningCallsUsed = activatedCalls.filter((c) => c === "C3" || c === "C4").length;
+  const dayCallsUsed = activatedCalls.filter(
+    (c) => c === "C1" || c === "C2"
+  ).length;
+  const eveningCallsUsed = activatedCalls.filter(
+    (c) => c === "C3" || c === "C4"
+  ).length;
 
   if (shiftType === "day") {
     const target = ["C1", "C2"][dayCallsUsed];
@@ -216,44 +226,203 @@ export default function CallActivationDecisionTool() {
     if (isUC === "yes") return true;
     if (daysNum >= 2) return true;
     if (!timeBucket || !shiftType) return false;
-    if (timeBucket === "before4" && Number.isNaN(Number(orphanCount))) return false;
+    if (timeBucket === "before4" && Number.isNaN(Number(orphanCount))) {
+      return false;
+    }
     return true;
   })();
 
   return (
-    <div className="min-h-screen bg-slate-50 p-3 sm:p-4 md:p-6">
-      <div className="mx-auto max-w-5xl space-y-4 sm:space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{COPY.pageTitle}</h1>
-          <p className="mt-2 text-sm text-slate-600">{COPY.pageSubtitle}</p>
-        </div>
+    <div className="page">
+      <style>{`
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+        .page {
+          min-height: 100vh;
+          background: #f8fafc;
+          padding: 16px;
+          font-family: Arial, sans-serif;
+          color: #0f172a;
+        }
+        .container {
+          max-width: 1100px;
+          margin: 0 auto;
+        }
+        .title {
+          font-size: 30px;
+          font-weight: 700;
+          margin: 0 0 8px 0;
+          letter-spacing: -0.02em;
+        }
+        .subtitle {
+          margin: 0 0 20px 0;
+          color: #475569;
+          line-height: 1.5;
+        }
+        .mainGrid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        .card {
+          background: white;
+          border: 1px solid #cbd5e1;
+          border-radius: 20px;
+          padding: 20px;
+          box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+        .sectionTitle {
+          margin: 0 0 16px 0;
+          font-size: 22px;
+          font-weight: 700;
+        }
+        .field {
+          margin-bottom: 18px;
+        }
+        .label {
+          font-size: 14px;
+          font-weight: 700;
+          margin-bottom: 8px;
+          display: block;
+        }
+        .buttonRow {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .bigButton, .pillButton {
+          border: 1px solid #94a3b8;
+          background: white;
+          color: #0f172a;
+          cursor: pointer;
+          transition: 0.15s ease;
+        }
+        .bigButton {
+          min-height: 74px;
+          padding: 16px 18px;
+          border-radius: 16px;
+          font-size: 16px;
+          font-weight: 700;
+          text-align: left;
+          flex: 1 1 220px;
+        }
+        .pillButton {
+          padding: 12px 16px;
+          border-radius: 12px;
+          font-size: 15px;
+          font-weight: 600;
+        }
+        .selected {
+          background: #0f172a;
+          color: white;
+          border-color: #0f172a;
+        }
+        .select {
+          width: 100%;
+          max-width: 360px;
+          padding: 12px 14px;
+          border-radius: 12px;
+          border: 1px solid #94a3b8;
+          font-size: 15px;
+          background: white;
+        }
+        .recommendationBox {
+          border-radius: 16px;
+          padding: 16px;
+          margin-bottom: 18px;
+          border: 1px solid #e2e8f0;
+          background: #f8fafc;
+          transition: 0.2s ease;
+        }
+        .recommendationBox.complete {
+          background: #f0fdf4;
+          border-color: #86efac;
+          box-shadow: 0 0 0 2px #86efac;
+        }
+        .recTitle {
+          font-size: 20px;
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+        .recBody {
+          line-height: 1.6;
+          color: #334155;
+          margin: 0;
+        }
+        .subheading {
+          font-size: 14px;
+          font-weight: 700;
+          margin: 0 0 8px 0;
+        }
+        .list {
+          margin: 0;
+          padding-left: 20px;
+          color: #334155;
+          line-height: 1.6;
+        }
+        .list li {
+          margin-bottom: 6px;
+        }
+        .footerCard {
+          margin-top: 16px;
+          background: white;
+          border: 1px dashed #94a3b8;
+          border-radius: 20px;
+          padding: 20px;
+        }
+        .byline {
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid #e2e8f0;
+          font-size: 12px;
+          color: #64748b;
+        }
+        .link {
+          color: #0f172a;
+        }
+        .link:hover {
+          text-decoration: underline;
+        }
+        @media (min-width: 900px) {
+          .page {
+            padding: 24px;
+          }
+          .mainGrid {
+            grid-template-columns: 1.1fr 0.9fr;
+          }
+        }
+      `}</style>
 
-        <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
-          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 space-y-4 sm:p-5 sm:space-y-5">
-            <h2 className="text-lg font-medium sm:text-xl">Current situation</h2>
+      <div className="container">
+        <h1 className="title">{COPY.pageTitle}</h1>
+        <p className="subtitle">{COPY.pageSubtitle}</p>
 
-            <div>
-              <label className="mb-3 block text-sm font-medium">Is this an ED shift or UC shift?</label>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {[
-                  ["no", "ED shift"],
-                  ["yes", "UC shift"],
-                ].map(([value, label]) => (
-                  <button
-                    key={value}
-                    onClick={() => setIsUC(value)}
-                    className={`min-h-[72px] rounded-2xl border p-4 text-left transition ${isUC === value ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-50"}`}
-                  >
-                    <div className="text-base font-medium sm:text-lg">{label}</div>
-                  </button>
-                ))}
+        <div className="mainGrid">
+          <div className="card">
+            <h2 className="sectionTitle">Current situation</h2>
+
+            <div className="field">
+              <label className="label">Is this an ED shift or UC shift?</label>
+              <div className="buttonRow">
+                <button
+                  className={`bigButton ${isUC === "no" ? "selected" : ""}`}
+                  onClick={() => setIsUC("no")}
+                >
+                  ED shift
+                </button>
+                <button
+                  className={`bigButton ${isUC === "yes" ? "selected" : ""}`}
+                  onClick={() => setIsUC("yes")}
+                >
+                  UC shift
+                </button>
               </div>
             </div>
 
-            <div>
-              <label className="mb-2 block text-sm font-medium">When is the affected shift?</label>
+            <div className="field">
+              <label className="label">When is the affected shift?</label>
               <select
-                className="w-full rounded-xl border p-3 text-base"
+                className="select"
                 value={daysUntilShift}
                 onChange={(e) => setDaysUntilShift(e.target.value)}
               >
@@ -264,95 +433,114 @@ export default function CallActivationDecisionTool() {
               </select>
             </div>
 
-            {daysUntilShift !== "" && Number(daysUntilShift) < 2 && isUC === "no" && (
-              <>
-                <div>
-                  <label className="mb-2 block text-sm font-medium">What time is it right now?</label>
-                  <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-                    {[
-                      ["before4", "Before 4pm"],
-                      ["after4", "After 4pm"],
-                    ].map(([value, label]) => (
+            {daysUntilShift !== "" &&
+              Number(daysUntilShift) < 2 &&
+              isUC === "no" && (
+                <>
+                  <div className="field">
+                    <label className="label">What time is it right now?</label>
+                    <div className="buttonRow">
                       <button
-                        key={value}
-                        onClick={() => setTimeBucket(value)}
-                        className={`min-h-[52px] rounded-xl border px-4 py-3 text-sm sm:text-base ${timeBucket === value ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}
+                        className={`pillButton ${timeBucket === "before4" ? "selected" : ""}`}
+                        onClick={() => setTimeBucket("before4")}
                       >
-                        {label}
+                        Before 4pm
+                      </button>
+                      <button
+                        className={`pillButton ${timeBucket === "after4" ? "selected" : ""}`}
+                        onClick={() => setTimeBucket("after4")}
+                      >
+                        After 4pm
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <label className="label">
+                      Is the affected shift a day or evening shift?
+                    </label>
+                    <div className="buttonRow">
+                      <button
+                        className={`pillButton ${shiftType === "day" ? "selected" : ""}`}
+                        onClick={() => setShiftType("day")}
+                      >
+                        Day shift
+                      </button>
+                      <button
+                        className={`pillButton ${shiftType === "evening" ? "selected" : ""}`}
+                        onClick={() => setShiftType("evening")}
+                      >
+                        Evening shift
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+            {timeBucket === "before4" &&
+              isUC === "no" &&
+              Number(daysUntilShift) < 2 && (
+                <div className="field">
+                  <label className="label">
+                    How many orphans already exist for that day?
+                  </label>
+                  <select
+                    className="select"
+                    value={orphanCount}
+                    onChange={(e) => setOrphanCount(e.target.value)}
+                  >
+                    <option value="">Select...</option>
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4+</option>
+                  </select>
+                </div>
+              )}
+
+            {timeBucket === "after4" &&
+              isUC === "no" &&
+              Number(daysUntilShift) < 2 && (
+                <div className="field">
+                  <label className="label">
+                    Which Calls are already activated on TAS?
+                  </label>
+                  <div className="buttonRow">
+                    {["C1", "C2", "C3", "C4"].map((call) => (
+                      <button
+                        key={call}
+                        className={`pillButton ${activatedCalls.includes(call) ? "selected" : ""}`}
+                        onClick={() => toggleCall(call)}
+                      >
+                        {call}
                       </button>
                     ))}
                   </div>
                 </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Is the affected shift a day or evening shift?</label>
-                  <div className="grid grid-cols-1 gap-2 sm:flex">
-                    {[
-                      ["day", "Day shift"],
-                      ["evening", "Evening shift"],
-                    ].map(([value, label]) => (
-                      <button
-                        key={value}
-                        onClick={() => setShiftType(value)}
-                        className={`min-h-[52px] rounded-xl border px-4 py-3 text-sm sm:text-base ${shiftType === value ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {timeBucket === "before4" && isUC === "no" && Number(daysUntilShift) < 2 && (
-              <div>
-                <label className="mb-2 block text-sm font-medium">How many orphans already exist for that day?</label>
-                <select
-                  className="w-full rounded-xl border p-3 text-base"
-                  value={orphanCount}
-                  onChange={(e) => setOrphanCount(e.target.value)}
-                >
-                  <option value="">Select...</option>
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4+</option>
-                </select>
-              </div>
-            )}
-
-            {timeBucket === "after4" && isUC === "no" && Number(daysUntilShift) < 2 && (
-              <div>
-                <label className="mb-2 block text-sm font-medium">Which Calls are already activated on TAS?</label>
-                <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-                  {["C1", "C2", "C3", "C4"].map((call) => (
-                    <button
-                      key={call}
-                      onClick={() => toggleCall(call)}
-                      className={`min-h-[52px] rounded-xl border px-4 py-3 text-sm sm:text-base ${activatedCalls.includes(call) ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}
-                    >
-                      {call}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
           </div>
 
-          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 space-y-4 sm:p-5">
-            <h2 className="text-lg font-medium sm:text-xl">Recommendation</h2>
-            <div className={`rounded-2xl p-4 transition ${isComplete ? "bg-green-50 ring-2 ring-green-300" : "bg-slate-50"}`}>
-              <div className="text-base font-semibold sm:text-lg">{result.title}</div>
-              <p className="mt-2 text-sm leading-6 text-slate-700">{result.body}</p>
+          <div className="card">
+            <h2 className="sectionTitle">Recommendation</h2>
+
+            <div
+              className={`recommendationBox ${isComplete ? "complete" : ""}`}
+            >
+              <div className="recTitle">{result.title}</div>
+              <p className="recBody">{result.body}</p>
             </div>
 
             {result.who.length > 0 && (
-              <div>
-                <div className="text-sm font-medium text-slate-900">Action</div>
-                <ul className="mt-2 list-disc pl-5 text-sm leading-6 text-slate-700 space-y-1">
+              <div style={{ marginBottom: 18 }}>
+                <div className="subheading">Action</div>
+                <ul className="list">
                   {result.who.map((item, index) => (
-                    <li key={typeof item === "string" ? item : `${item.label}-${index}`}>
+                    <li
+                      key={
+                        typeof item === "string" ? item : `${item.label}-${index}`
+                      }
+                    >
                       {renderActionItem(item)}
                     </li>
                   ))}
@@ -362,8 +550,8 @@ export default function CallActivationDecisionTool() {
 
             {result.notes.length > 0 && (
               <div>
-                <div className="text-sm font-medium text-slate-900">Notes</div>
-                <ul className="mt-2 list-disc pl-5 text-sm leading-6 text-slate-700 space-y-1">
+                <div className="subheading">Notes</div>
+                <ul className="list">
                   {result.notes.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -373,16 +561,16 @@ export default function CallActivationDecisionTool() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-dashed bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm ring-1 ring-slate-200 sm:p-5">
-          <div className="font-medium text-slate-900">Possible future upgrades</div>
-          <ul className="mt-2 list-disc pl-5 space-y-1">
+        <div className="footerCard">
+          <div className="subheading" style={{ fontSize: 16, marginBottom: 10 }}>
+            Possible future upgrades
+          </div>
+          <ul className="list">
             {COPY.futureUpgrades.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
-          <div className="mt-6 border-t border-slate-200 pt-4 text-xs text-slate-500">
-            {COPY.byline}
-          </div>
+          <div className="byline">{COPY.byline}</div>
         </div>
       </div>
     </div>
