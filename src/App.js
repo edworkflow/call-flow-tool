@@ -9,10 +9,9 @@ const COPY = {
   pageTitle: "ED Call Activate Guide Prototype",
   pageSubtitle:
     "Simple prototype for sick call / orphan decision support using TAS and Intrigma.",
-  futureUpgrades: [
-    "Pull orphan shifts automatically from Intrigma",
-    "Show a live list of who is on call (physicians and Admin on Call)",
-    "Quick links to TAS, Intrigma, and scheduling/call guidelines",
+  quickLinks: [
+    { label: "TAS", url: "https://kaizentas.com/" },
+    { label: "Intrigma", url: "https://www.intrigma.com/" },
   ],
   byline: "Experiment by Joshua McKamie",
 };
@@ -24,6 +23,9 @@ const ACTIONS = {
     value: CONTACTS.schedulerEmail,
   },
 };
+
+const ADMIN_NOTE =
+  "If there is any uncertainty or other concern, please contact Admin on Call. See TAS for the current Admin on Call.";
 
 function renderActionItem(item) {
   if (typeof item === "string") return item;
@@ -43,11 +45,12 @@ function getUcRecommendation(daysNum) {
   if (daysNum >= 2) {
     return {
       title: "UC shift, 2+ days out",
-      body: "Call out as early as possible and notify the Urgent Care manager on call. Earlier notice allows clinics to shut off unbooked appointments.",
+      body:
+        "Call out as early as possible and contact Dr. Eden for further guidance. Earlier notice allows clinics to shut off unbooked appointments.",
       who: [
-        "Find the on-call manager in ClinConnect → Roseville Urgent Care",
-        "Call or text the manager on their mobile number",
-        `Please also notify Dr. Eden at ${CONTACTS.stephanieEden}`,
+        `Contact Dr. Eden for further guidance: ${CONTACTS.stephanieEden}`,
+        "Find the on-call manager in ClinConnect → Roseville Urgent Care if directed or needed",
+        "Call or text the manager on their mobile number if directed or needed",
       ],
       notes: [
         "The schedule shows 10a–8p but reflects which manager is working that day.",
@@ -59,7 +62,8 @@ function getUcRecommendation(daysNum) {
 
   return {
     title: "Notify UC Nurse Managers",
-    body: "Call out as soon as possible and notify the Urgent Care manager on call directly. Do not use the ED Call process.",
+    body:
+      "Call out as soon as possible and notify the Urgent Care manager on call directly. Do not use the ED Call process.",
     who: [
       "Find the on-call manager in ClinConnect → Roseville Urgent Care",
       "Call or text the manager (mobile is best contact)",
@@ -74,163 +78,196 @@ function getUcRecommendation(daysNum) {
   };
 }
 
-function getEdRecommendation({
-  daysNum,
-  timeBucket,
-  shiftType,
-  orphanNum,
-  activatedCalls,
-}) {
-  if (daysNum >= 2) {
+function getOrphanRecommendation(orphanNum) {
+  const order = ["C1", "C2", "C3", "C4"];
+  const target = order[orphanNum] || "No regular Call left";
+
+  if (target === "No regular Call left") {
     return {
-      title: "2+ days out",
-      body: "Do not activate Call. Email the scheduler to orphan the shift.",
-      who: [ACTIONS.emailScheduler],
-      notes: [
-        "For multi-day illness, only tomorrow uses Call logic. Later shifts are handled by the scheduler.",
-      ],
-    };
-  }
-
-  if (!timeBucket || !shiftType || Number.isNaN(orphanNum)) {
-    return {
-      title: "Complete the inputs",
-      body: "Choose the current time, shift type, and current number of orphans.",
-      who: [],
-      notes: [],
-    };
-  }
-
-  if (timeBucket === "before4") {
-    const order = ["C1", "C2", "C3", "C4"];
-    const target = order[orphanNum] || "No regular Call left";
-
-    if (target === "No regular Call left") {
-      return {
-        title: "No regular Call left",
-        body: "Based on the orphan count, all regular Calls appear burned. Contact Admin on Call.",
-        who: ["Admin on Call"],
-        notes: [
-          "Before 4pm, Calls are consumed in orphan order.",
-          "If one of the orphans is itself a Call position, that position stays blank and is not covered.",
-        ],
-      };
-    }
-
-    return {
-      title: `Activate ${target}`,
-      body: `Before 4pm, acute Call activations are activated in orphan order. With ${orphanNum} existing orphan(s), activate ${target}.`,
-      who: [target, "Use TAS Call Activation"],
-      notes: [
-        "Double-check Intrigma for current orphans.",
-        "If it is close to or after 4pm, confirm whether someone already activated themselves on TAS.",
-      ],
-    };
-  }
-
-  const dayCallsUsed = activatedCalls.filter(
-    (c) => c === "C1" || c === "C2"
-  ).length;
-  const eveningCallsUsed = activatedCalls.filter(
-    (c) => c === "C3" || c === "C4"
-  ).length;
-
-  if (shiftType === "day") {
-    const target = ["C1", "C2"][dayCallsUsed];
-    if (!target) {
-      return {
-        title: "No day Call left",
-        body: "C1 and C2 already appear activated for tomorrow. Contact Admin on Call.",
-        who: ["Admin on Call"],
-        notes: ["After 4pm, unused C1/C2 become day Call for 4am to 3:59pm."],
-      };
-    }
-
-    return {
-      title: `Activate ${target}`,
-      body: `After 4pm, unused C1 and C2 become day Call. Based on the currently activated Calls, activate ${target}.`,
-      who: [target, "Use TAS Call Activation"],
-      notes: [
-        "Check TAS to confirm which Calls have already activated themselves.",
-        "Day Call covers shifts starting 4am to 3:59pm.",
-      ],
-    };
-  }
-
-  const target = ["C3", "C4"][eveningCallsUsed];
-  if (!target) {
-    return {
-      title: "No evening Call left",
-      body: "C3 and C4 already appear activated for tomorrow. Contact Admin on Call.",
+      title: "No regular Call left",
+      body: "Based on the orphan count, all regular Calls appear burned. Contact Admin on Call.",
       who: ["Admin on Call"],
-      notes: ["After 4pm, unused C3/C4 become evening Call for 4pm to 2am."],
+      notes: [
+        "Before 4pm the day before, Calls are consumed in orphan order.",
+        "If one of the orphans is itself a Call position, that position stays blank and is not covered.",
+        ADMIN_NOTE,
+      ],
     };
   }
 
   return {
     title: `Activate ${target}`,
-    body: `After 4pm, unused C3 and C4 become evening Call. Based on the currently activated Calls, activate ${target}.`,
-    who: [target, "Use TAS Call Activation"],
+    body: `Before 4pm the day before, acute Call activations are activated in orphan order. With ${orphanNum} existing orphan(s), activate ${target}.`,
+    who: [`Contact the ${target} call physician`, "Activate the call on TAS"],
+    notes: ["Double-check Intrigma for current orphans.", ADMIN_NOTE],
+  };
+}
+
+function getDayEveningRecommendation({ shiftStartBucket, activatedCalls }) {
+  const isDayShift = shiftStartBucket === "before4";
+  const callOrder = isDayShift ? ["C1", "C2"] : ["C3", "C4"];
+  const alreadyUsed = activatedCalls.filter((call) => callOrder.includes(call));
+  const target = callOrder[alreadyUsed.length];
+
+  if (!target) {
+    return {
+      title: isDayShift ? "No day Call left" : "No evening Call left",
+      body: isDayShift
+        ? "C1 and C2 already appear activated. Contact Admin on Call."
+        : "C3 and C4 already appear activated. Contact Admin on Call.",
+      who: ["Admin on Call"],
+      notes: [
+        isDayShift
+          ? "Day Call uses C1/C2 for shifts starting before 4pm."
+          : "Evening Call uses C3/C4 for shifts starting 4pm or later.",
+        ADMIN_NOTE,
+      ],
+    };
+  }
+
+  return {
+    title: `Activate ${target}`,
+    body: isDayShift
+      ? `Use day Call for shifts starting before 4pm. Based on the currently activated Calls, activate ${target}.`
+      : `Use evening Call for shifts starting 4pm or later. Based on the currently activated Calls, activate ${target}.`,
+    who: [`Contact the ${target} call physician`, "Activate the call on TAS"],
     notes: [
       "Check TAS to confirm which Calls have already activated themselves.",
-      "Evening Call covers shifts starting 4pm to 2am.",
+      isDayShift
+        ? "Day Call uses C1/C2 for shifts starting before 4pm."
+        : "Evening Call uses C3/C4 for shifts starting 4pm or later.",
+      ADMIN_NOTE,
     ],
   };
 }
 
+function getEdRecommendation({
+  daysNum,
+  tomorrowTiming,
+  orphanNum,
+  shiftStartBucket,
+  activatedCalls,
+}) {
+  if (daysNum >= 2) {
+    return {
+      title: "2+ days out",
+      body:
+        "Do not activate Call. Email the scheduler for further guidance. Depending on the situation, the shift may be orphaned.",
+      who: [ACTIONS.emailScheduler],
+      notes: [
+        "For multi-day illness, only tomorrow uses Call logic. Later shifts are handled by the scheduler.",
+        ADMIN_NOTE,
+      ],
+    };
+  }
+
+  if (daysNum === 1) {
+    if (tomorrowTiming === "before4") {
+      return getOrphanRecommendation(orphanNum);
+    }
+
+    if (tomorrowTiming === "after4") {
+      return getDayEveningRecommendation({ shiftStartBucket, activatedCalls });
+    }
+  }
+
+  return getDayEveningRecommendation({ shiftStartBucket, activatedCalls });
+}
+
+function EmptyRecommendation() {
+  return (
+    <div className="emptyState">
+      <div className="emptyTitle">Recommendation pending</div>
+      <p className="emptyBody">
+        Answer the questions on the left. Once the needed details are complete, the recommendation will appear here.
+      </p>
+    </div>
+  );
+}
+
 export default function CallActivationDecisionTool() {
-  const [timeBucket, setTimeBucket] = React.useState("");
-  const [daysUntilShift, setDaysUntilShift] = React.useState("");
-  const [shiftType, setShiftType] = React.useState("");
   const [isUC, setIsUC] = React.useState("");
+  const [daysUntilShift, setDaysUntilShift] = React.useState("");
+  const [tomorrowTiming, setTomorrowTiming] = React.useState("");
+  const [shiftStartBucket, setShiftStartBucket] = React.useState("");
   const [orphanCount, setOrphanCount] = React.useState("");
   const [activatedCalls, setActivatedCalls] = React.useState([]);
+  const [noCallsActivated, setNoCallsActivated] = React.useState(false);
+
+  const daysNum = Number(daysUntilShift);
+  const orphanNum = Number(orphanCount);
+
+  const resetEdDetails = () => {
+    setTomorrowTiming("");
+    setShiftStartBucket("");
+    setOrphanCount("");
+    setActivatedCalls([]);
+    setNoCallsActivated(false);
+  };
+
+  const handleShiftTypeChange = (value) => {
+    setIsUC(value);
+    resetEdDetails();
+  };
+
+  const handleDaysUntilShiftChange = (value) => {
+    setDaysUntilShift(value);
+    resetEdDetails();
+  };
+
+  const handleTomorrowTimingChange = (value) => {
+    setTomorrowTiming(value);
+    setShiftStartBucket("");
+    setOrphanCount("");
+    setActivatedCalls([]);
+    setNoCallsActivated(false);
+  };
+
+  const handleShiftStartBucketChange = (value) => {
+    setShiftStartBucket(value);
+    setActivatedCalls([]);
+    setNoCallsActivated(false);
+  };
 
   const toggleCall = (call) => {
+    setNoCallsActivated(false);
     setActivatedCalls((prev) =>
       prev.includes(call) ? prev.filter((c) => c !== call) : [...prev, call]
     );
   };
 
-  const getRecommendation = () => {
-    const daysNum = Number(daysUntilShift);
-    const orphanNum = Number(orphanCount);
-
-    if (!daysUntilShift || !isUC) {
-      return {
-        title: "Complete the inputs",
-        body: "Choose when the shift is, whether this is UC, and the current situation to see the recommendation.",
-        who: [],
-        notes: [],
-      };
-    }
-
-    if (isUC === "yes") {
-      return getUcRecommendation(daysNum);
-    }
-
-    return getEdRecommendation({
-      daysNum,
-      timeBucket,
-      shiftType,
-      orphanNum,
-      activatedCalls,
-    });
+  const handleNoCallsActivated = () => {
+    setActivatedCalls([]);
+    setNoCallsActivated(true);
   };
 
-  const result = getRecommendation();
+  const needsTomorrowTiming = isUC === "no" && daysNum === 1;
+  const usesOrphanOrder = isUC === "no" && daysNum === 1 && tomorrowTiming === "before4";
+  const usesDayEvening =
+    isUC === "no" &&
+    (daysNum === 0 || (daysNum === 1 && tomorrowTiming === "after4"));
 
   const isComplete = (() => {
-    const daysNum = Number(daysUntilShift);
-    if (!daysUntilShift || !isUC) return false;
+    if (!isUC || !daysUntilShift) return false;
     if (isUC === "yes") return true;
     if (daysNum >= 2) return true;
-    if (!timeBucket || !shiftType) return false;
-    if (timeBucket === "before4" && Number.isNaN(Number(orphanCount))) {
-      return false;
-    }
-    return true;
+    if (daysNum === 1 && !tomorrowTiming) return false;
+    if (usesOrphanOrder) return !Number.isNaN(orphanNum);
+    if (usesDayEvening) return Boolean(shiftStartBucket) && (noCallsActivated || activatedCalls.length > 0);
+    return false;
   })();
+
+  const result = isComplete
+    ? isUC === "yes"
+      ? getUcRecommendation(daysNum)
+      : getEdRecommendation({
+          daysNum,
+          tomorrowTiming,
+          orphanNum,
+          shiftStartBucket,
+          activatedCalls,
+        })
+    : null;
 
   return (
     <div className="page">
@@ -285,6 +322,12 @@ export default function CallActivationDecisionTool() {
           margin-bottom: 8px;
           display: block;
         }
+        .helperText {
+          margin: 4px 0 10px 0;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.4;
+        }
         .buttonRow {
           display: flex;
           flex-wrap: wrap;
@@ -331,13 +374,10 @@ export default function CallActivationDecisionTool() {
           padding: 16px;
           margin-bottom: 18px;
           border: 1px solid #e2e8f0;
-          background: #f8fafc;
-          transition: 0.2s ease;
-        }
-        .recommendationBox.complete {
           background: #f0fdf4;
           border-color: #86efac;
           box-shadow: 0 0 0 2px #86efac;
+          transition: 0.2s ease;
         }
         .recTitle {
           font-size: 20px;
@@ -347,6 +387,24 @@ export default function CallActivationDecisionTool() {
         .recBody {
           line-height: 1.6;
           color: #334155;
+          margin: 0;
+        }
+        .emptyState {
+          border-radius: 16px;
+          padding: 16px;
+          margin-bottom: 18px;
+          border: 1px solid #e2e8f0;
+          background: #f8fafc;
+        }
+        .emptyTitle {
+          font-size: 18px;
+          font-weight: 700;
+          margin-bottom: 8px;
+          color: #334155;
+        }
+        .emptyBody {
+          line-height: 1.6;
+          color: #64748b;
           margin: 0;
         }
         .subheading {
@@ -369,6 +427,25 @@ export default function CallActivationDecisionTool() {
           border: 1px dashed #94a3b8;
           border-radius: 20px;
           padding: 20px;
+        }
+        .quickLinks {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .quickLink {
+          display: inline-block;
+          border: 1px solid #94a3b8;
+          border-radius: 12px;
+          padding: 10px 14px;
+          color: #0f172a;
+          font-weight: 700;
+          text-decoration: none;
+          background: white;
+        }
+        .quickLink:hover {
+          background: #f8fafc;
+          text-decoration: underline;
         }
         .byline {
           margin-top: 18px;
@@ -406,13 +483,13 @@ export default function CallActivationDecisionTool() {
               <div className="buttonRow">
                 <button
                   className={`bigButton ${isUC === "no" ? "selected" : ""}`}
-                  onClick={() => setIsUC("no")}
+                  onClick={() => handleShiftTypeChange("no")}
                 >
                   ED shift
                 </button>
                 <button
                   className={`bigButton ${isUC === "yes" ? "selected" : ""}`}
-                  onClick={() => setIsUC("yes")}
+                  onClick={() => handleShiftTypeChange("yes")}
                 >
                   UC shift
                 </button>
@@ -424,7 +501,7 @@ export default function CallActivationDecisionTool() {
               <select
                 className="select"
                 value={daysUntilShift}
-                onChange={(e) => setDaysUntilShift(e.target.value)}
+                onChange={(e) => handleDaysUntilShiftChange(e.target.value)}
               >
                 <option value="">Select...</option>
                 <option value="0">Today</option>
@@ -433,143 +510,159 @@ export default function CallActivationDecisionTool() {
               </select>
             </div>
 
-            {daysUntilShift !== "" &&
-              Number(daysUntilShift) < 2 &&
-              isUC === "no" && (
-                <>
-                  <div className="field">
-                    <label className="label">What time is it right now?</label>
-                    <div className="buttonRow">
-                      <button
-                        className={`pillButton ${timeBucket === "before4" ? "selected" : ""}`}
-                        onClick={() => setTimeBucket("before4")}
-                      >
-                        Before 4pm
-                      </button>
-                      <button
-                        className={`pillButton ${timeBucket === "after4" ? "selected" : ""}`}
-                        onClick={() => setTimeBucket("after4")}
-                      >
-                        After 4pm
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="field">
-                    <label className="label">
-                      Is the affected shift a day or evening shift?
-                    </label>
-                    <div className="buttonRow">
-                      <button
-                        className={`pillButton ${shiftType === "day" ? "selected" : ""}`}
-                        onClick={() => setShiftType("day")}
-                      >
-                        Day shift
-                      </button>
-                      <button
-                        className={`pillButton ${shiftType === "evening" ? "selected" : ""}`}
-                        onClick={() => setShiftType("evening")}
-                      >
-                        Evening shift
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-
-            {timeBucket === "before4" &&
-              isUC === "no" &&
-              Number(daysUntilShift) < 2 && (
-                <div className="field">
-                  <label className="label">
-                    How many orphans already exist for that day?
-                  </label>
-                  <select
-                    className="select"
-                    value={orphanCount}
-                    onChange={(e) => setOrphanCount(e.target.value)}
+            {needsTomorrowTiming && (
+              <div className="field">
+                <label className="label">Is it currently before 4pm?</label>
+                <p className="helperText">
+                  Before 4pm the day before uses orphan order. After 4pm, use the affected shift start time.
+                </p>
+                <div className="buttonRow">
+                  <button
+                    className={`pillButton ${tomorrowTiming === "before4" ? "selected" : ""}`}
+                    onClick={() => handleTomorrowTimingChange("before4")}
                   >
-                    <option value="">Select...</option>
-                    <option value="0">0</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4+</option>
-                  </select>
+                    Before 4pm
+                  </button>
+                  <button
+                    className={`pillButton ${tomorrowTiming === "after4" ? "selected" : ""}`}
+                    onClick={() => handleTomorrowTimingChange("after4")}
+                  >
+                    After 4pm
+                  </button>
                 </div>
-              )}
+              </div>
+            )}
 
-            {timeBucket === "after4" &&
-              isUC === "no" &&
-              Number(daysUntilShift) < 2 && (
+            {usesOrphanOrder && (
+              <div className="field">
+                <label className="label">How many orphans already exist for that day?</label>
+                <select
+                  className="select"
+                  value={orphanCount}
+                  onChange={(e) => setOrphanCount(e.target.value)}
+                >
+                  <option value="">Select...</option>
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4+</option>
+                </select>
+              </div>
+            )}
+
+            {usesDayEvening && (
+              <>
                 <div className="field">
-                  <label className="label">
-                    Which Calls are already activated on TAS?
-                  </label>
+                  <label className="label">What time does the affected shift start?</label>
                   <div className="buttonRow">
-                    {["C1", "C2", "C3", "C4"].map((call) => (
-                      <button
-                        key={call}
-                        className={`pillButton ${activatedCalls.includes(call) ? "selected" : ""}`}
-                        onClick={() => toggleCall(call)}
-                      >
-                        {call}
-                      </button>
-                    ))}
+                    <button
+                      className={`pillButton ${shiftStartBucket === "before4" ? "selected" : ""}`}
+                      onClick={() => handleShiftStartBucketChange("before4")}
+                    >
+                      Before 4pm
+                    </button>
+                    <button
+                      className={`pillButton ${shiftStartBucket === "after4" ? "selected" : ""}`}
+                      onClick={() => handleShiftStartBucketChange("after4")}
+                    >
+                      4pm or later
+                    </button>
                   </div>
                 </div>
-              )}
+
+                {shiftStartBucket && (
+                  <div className="field">
+                    <label className="label">Which Calls are already activated on TAS?</label>
+                    <p className="helperText">
+                      Select any calls already activated, or choose “No calls yet activated.”
+                    </p>
+                    <div className="buttonRow">
+                      {["C1", "C2", "C3", "C4"].map((call) => (
+                        <button
+                          key={call}
+                          className={`pillButton ${activatedCalls.includes(call) ? "selected" : ""}`}
+                          onClick={() => toggleCall(call)}
+                        >
+                          {call}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="buttonRow" style={{ marginTop: 10 }}>
+                      <button
+                        className={`pillButton ${noCallsActivated ? "selected" : ""}`}
+                        onClick={handleNoCallsActivated}
+                      >
+                        No calls yet activated
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <div className="card">
             <h2 className="sectionTitle">Recommendation</h2>
 
-            <div
-              className={`recommendationBox ${isComplete ? "complete" : ""}`}
-            >
-              <div className="recTitle">{result.title}</div>
-              <p className="recBody">{result.body}</p>
-            </div>
+            {!result && <EmptyRecommendation />}
 
-            {result.who.length > 0 && (
-              <div style={{ marginBottom: 18 }}>
-                <div className="subheading">Action</div>
-                <ul className="list">
-                  {result.who.map((item, index) => (
-                    <li
-                      key={
-                        typeof item === "string" ? item : `${item.label}-${index}`
-                      }
-                    >
-                      {renderActionItem(item)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {result && (
+              <>
+                <div className="recommendationBox">
+                  <div className="recTitle">{result.title}</div>
+                  <p className="recBody">{result.body}</p>
+                </div>
 
-            {result.notes.length > 0 && (
-              <div>
-                <div className="subheading">Notes</div>
-                <ul className="list">
-                  {result.notes.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
+                {result.who.length > 0 && (
+                  <div style={{ marginBottom: 18 }}>
+                    <div className="subheading">Action</div>
+                    <ul className="list">
+                      {result.who.map((item, index) => (
+                        <li
+                          key={
+                            typeof item === "string" ? item : `${item.label}-${index}`
+                          }
+                        >
+                          {renderActionItem(item)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {result.notes.length > 0 && (
+                  <div>
+                    <div className="subheading">Notes</div>
+                    <ul className="list">
+                      {result.notes.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
 
         <div className="footerCard">
           <div className="subheading" style={{ fontSize: 16, marginBottom: 10 }}>
-            Possible future upgrades
+            Quick links
           </div>
-          <ul className="list">
-            {COPY.futureUpgrades.map((item) => (
-              <li key={item}>{item}</li>
+          <div className="quickLinks">
+            {COPY.quickLinks.map((link) => (
+              <a
+                key={link.label}
+                className="quickLink"
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {link.label}
+              </a>
             ))}
-          </ul>
+          </div>
           <div className="byline">{COPY.byline}</div>
         </div>
       </div>
