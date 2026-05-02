@@ -252,7 +252,7 @@ export default function CallActivationDecisionTool() {
     if (isUC === "yes") return true;
     if (daysNum >= 2) return true;
     if (daysNum === 1 && !tomorrowTiming) return false;
-    if (usesOrphanOrder) return !Number.isNaN(orphanNum);
+    if (usesOrphanOrder) return orphanCount !== "";
     if (usesDayEvening) return Boolean(shiftStartBucket) && (noCallsActivated || activatedCalls.length > 0);
     return false;
   })();
