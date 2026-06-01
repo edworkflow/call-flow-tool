@@ -15,7 +15,7 @@ const COPY = {
     { label: "TAS", url: "https://kaizentas.com/" },
     { label: "Intrigma", url: "https://www.intrigma.com/" },
   ],
-  byline: "Created by Joshua McKamie for North Valley EM, version 1.0",
+  byline: "Created by Joshua McKamie for North Valley EM, version 1.1",
 };
 
 const ACTIONS = {
@@ -27,7 +27,7 @@ const ACTIONS = {
 };
 
 const ADMIN_NOTE =
-  "If there is any uncertainty or other concern, please contact Admin on Call. See TAS for the current Admin on Call.";
+  "If there is any uncertainty or other concern, please contact Admin on Call. See TAS for the current Admin on Call for your affected shift.";
 
 function renderActionItem(item) {
   if (typeof item === "string") return item;
@@ -231,11 +231,16 @@ export default function CallActivationDecisionTool() {
     setNoCallsActivated(false);
   };
 
-  const toggleCall = (call) => {
+  const selectHighestActivatedCall = (call) => {
     setNoCallsActivated(false);
-    setActivatedCalls((prev) =>
-      prev.includes(call) ? prev.filter((c) => c !== call) : [...prev, call]
-    );
+
+    const callOrder =
+      call === "C1" || call === "C2" ? ["C1", "C2"] : ["C3", "C4"];
+
+    const callIndex = callOrder.indexOf(call);
+    const callsActivatedThroughSelectedCall = callOrder.slice(0, callIndex + 1);
+
+    setActivatedCalls(callsActivatedThroughSelectedCall);
   };
 
   const handleNoCallsActivated = () => {
@@ -244,10 +249,22 @@ export default function CallActivationDecisionTool() {
   };
 
   const needsTomorrowTiming = isUC === "no" && daysNum === 1;
-  const usesOrphanOrder = isUC === "no" && daysNum === 1 && tomorrowTiming === "before4";
+  const usesOrphanOrder =
+    isUC === "no" && daysNum === 1 && tomorrowTiming === "before4";
   const usesDayEvening =
     isUC === "no" &&
     (daysNum === 0 || (daysNum === 1 && tomorrowTiming === "after4"));
+
+  const relevantCallOptions =
+    shiftStartBucket === "before4" ? ["C1", "C2"] : ["C3", "C4"];
+
+  const noCallsActivatedLabel =
+    shiftStartBucket === "before4"
+      ? "No C1/C2 calls yet activated"
+      : "No C3/C4 calls yet activated";
+
+  const highestActivatedCall =
+    activatedCalls.length > 0 ? activatedCalls[activatedCalls.length - 1] : "";
 
   const isComplete = (() => {
     if (!isUC || !daysUntilShift) return false;
@@ -255,7 +272,9 @@ export default function CallActivationDecisionTool() {
     if (daysNum >= 2) return true;
     if (daysNum === 1 && !tomorrowTiming) return false;
     if (usesOrphanOrder) return orphanCount !== "";
-    if (usesDayEvening) return Boolean(shiftStartBucket) && (noCallsActivated || activatedCalls.length > 0);
+    if (usesDayEvening) {
+      return Boolean(shiftStartBucket) && (noCallsActivated || activatedCalls.length > 0);
+    }
     return false;
   })();
 
@@ -586,27 +605,32 @@ export default function CallActivationDecisionTool() {
 
                 {shiftStartBucket && (
                   <div className="field">
-                    <label className="label">Which Calls are already activated on TAS?</label>
+                    <label className="label">Which is the highest call already activated on TAS?</label>
                     <p className="helperText">
-                      Select any calls already activated, or choose “No calls yet activated.”
+                      Select the highest call already activated. For example, if C2 is activated,
+                      choose C2 and the tool will treat C1 and C2 as already used.
                     </p>
+
                     <div className="buttonRow">
-                      {["C1", "C2", "C3", "C4"].map((call) => (
+                      {relevantCallOptions.map((call) => (
                         <button
                           key={call}
-                          className={`pillButton ${activatedCalls.includes(call) ? "selected" : ""}`}
-                          onClick={() => toggleCall(call)}
+                          className={`pillButton ${
+                            highestActivatedCall === call ? "selected" : ""
+                          }`}
+                          onClick={() => selectHighestActivatedCall(call)}
                         >
                           {call}
                         </button>
                       ))}
                     </div>
+
                     <div className="buttonRow" style={{ marginTop: 10 }}>
                       <button
                         className={`pillButton ${noCallsActivated ? "selected" : ""}`}
                         onClick={handleNoCallsActivated}
                       >
-                        No calls yet activated
+                        {noCallsActivatedLabel}
                       </button>
                     </div>
                   </div>
