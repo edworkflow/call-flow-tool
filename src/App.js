@@ -6,14 +6,16 @@ const CONTACTS = {
 };
 
 const COPY = {
-  pageTitle: "ED Call Activate Guide Prototype",
+  pageTitle: "Sick Call Activation Guide",
   pageSubtitle:
-    "Simple prototype for sick call / orphan decision support using TAS and Intrigma.",
+    "Decision support tool for how to properly activate call when needed.",
+  disclaimer:
+    "This is only guidance. If you have any questions or concerns, especially about prolonged illness or orphans, please contact the scheduler and/or one of the chiefs.",
   quickLinks: [
     { label: "TAS", url: "https://kaizentas.com/" },
     { label: "Intrigma", url: "https://www.intrigma.com/" },
   ],
-  byline: "Experiment by Joshua McKamie",
+  byline: "Created by Joshua McKamie for North Valley EM, version 1.0",
 };
 
 const ACTIONS = {
@@ -296,6 +298,16 @@ export default function CallActivationDecisionTool() {
           color: #475569;
           line-height: 1.5;
         }
+        .disclaimer {
+          margin: -8px 0 20px 0;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.5;
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 10px 12px;
+        }
         .mainGrid {
           display: grid;
           grid-template-columns: 1fr;
@@ -473,6 +485,7 @@ export default function CallActivationDecisionTool() {
       <div className="container">
         <h1 className="title">{COPY.pageTitle}</h1>
         <p className="subtitle">{COPY.pageSubtitle}</p>
+        <p className="disclaimer">{COPY.disclaimer}</p>
 
         <div className="mainGrid">
           <div className="card">
